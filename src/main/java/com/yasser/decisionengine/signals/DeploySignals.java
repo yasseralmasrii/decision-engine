@@ -17,7 +17,7 @@ public class DeploySignals implements SignalProvider {
         List<String> missing = new ArrayList<>();
         String service = Params.str(p, "service");
         String env = Params.str(p, "environment");
-        Boolean testsPassed = Params.bool(p, "testsPassed");   // null = still running
+        Boolean testsPassed = Params.bool(p, "testsPassed");
         boolean rollback = Boolean.TRUE.equals(Params.bool(p, "rollbackAvailable"));
         double changedFiles = Params.num(p, "changedFiles", 0);
         if (service == null) missing.add("service");
