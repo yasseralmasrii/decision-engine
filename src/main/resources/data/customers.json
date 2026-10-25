@@ -1,0 +1,8 @@
+[
+  { "id": "C-1", "name": "Mariam", "tier": "regular", "refundsLast90Days": 0, "fraudHold": false },
+  { "id": "C-2", "name": "Yousef", "tier": "regular", "refundsLast90Days": 1, "fraudHold": false },
+  { "id": "C-3", "name": "Layla",  "tier": "vip",     "refundsLast90Days": 0, "fraudHold": false },
+  { "id": "C-4", "name": "Omar",   "tier": "regular", "refundsLast90Days": 1, "fraudHold": false },
+  { "id": "C-5", "name": "Noor",   "tier": "regular", "refundsLast90Days": 4, "fraudHold": false },
+  { "id": "C-6", "name": "Khalid", "tier": "regular", "refundsLast90Days": 0, "fraudHold": true }
+]

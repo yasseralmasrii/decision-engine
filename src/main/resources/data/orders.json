@@ -1,0 +1,10 @@
+[
+  { "id": "A-1001", "customerId": "C-1", "total": 45.00,   "refunded": 0.0,  "paymentMethod": "card", "status": "DELIVERED",         "daysSincePurchase": 5 },
+  { "id": "A-1002", "customerId": "C-2", "total": 60.00,   "refunded": 0.0,  "paymentMethod": "card", "status": "IN_TRANSIT",        "daysSincePurchase": 9 },
+  { "id": "A-1003", "customerId": "C-3", "total": 1200.00, "refunded": 0.0,  "paymentMethod": "card", "status": "DELIVERED",         "daysSincePurchase": 12 },
+  { "id": "A-1004", "customerId": "C-1", "total": 89.99,   "refunded": 0.0,  "paymentMethod": "card", "status": "RETURN_IN_TRANSIT", "daysSincePurchase": 18 },
+  { "id": "A-1005", "customerId": "C-4", "total": 30.00,   "refunded": 30.0, "paymentMethod": "card", "status": "REFUNDED",          "daysSincePurchase": 20 },
+  { "id": "A-1006", "customerId": "C-5", "total": 150.00,  "refunded": 0.0,  "paymentMethod": "card", "status": "DELIVERED",         "daysSincePurchase": 7 },
+  { "id": "A-1007", "customerId": "C-6", "total": 75.00,   "refunded": 0.0,  "paymentMethod": "card", "status": "DELIVERED",         "daysSincePurchase": 3 },
+  { "id": "A-1008", "customerId": "C-1", "total": 40.00,   "refunded": 0.0,  "paymentMethod": "card", "status": "DELIVERED",         "daysSincePurchase": 45 }
+]

@@ -1,0 +1,6 @@
+[
+  { "name": "api",      "rollbackAvailable": true,  "critical": false, "freezeDaysRemaining": 0 },
+  { "name": "payments", "rollbackAvailable": true,  "critical": true,  "freezeDaysRemaining": 10 },
+  { "name": "web",      "rollbackAvailable": false, "critical": false, "freezeDaysRemaining": 0 },
+  { "name": "search",   "rollbackAvailable": true,  "critical": false, "freezeDaysRemaining": 0 }
+]

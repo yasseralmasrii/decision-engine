@@ -1,0 +1,8 @@
+[
+  { "id": "CI-501", "commit": "a1b2c3d", "service": "api",      "status": "PASSED",  "testsRun": 412, "changedFiles": 12 },
+  { "id": "CI-502", "commit": "e4f5a6b", "service": "api",      "status": "RUNNING", "testsRun": 0,   "changedFiles": 6 },
+  { "id": "CI-503", "commit": "c7d8e9f", "service": "web",      "status": "FAILED",  "testsRun": 230, "changedFiles": 9 },
+  { "id": "CI-504", "commit": "9f8e7d6", "service": "payments", "status": "PASSED",  "testsRun": 980, "changedFiles": 8 },
+  { "id": "CI-505", "commit": "1a2b3c4", "service": "search",   "status": "PASSED",  "testsRun": 150, "changedFiles": 80 },
+  { "id": "CI-506", "commit": "5d6e7f8", "service": "web",      "status": "PASSED",  "testsRun": 230, "changedFiles": 4 }
+]
