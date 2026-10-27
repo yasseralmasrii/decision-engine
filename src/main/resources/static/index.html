@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decision Engine</title>
+    <meta
+      name="description"
+      content="An AI agent proposes. The decision engine decides whether it is allowed to act."
+    />
+    <style>
+      :root {
+        --bg: #f6f5f1;
+        --panel: #ffffff;
+        --ink: #1c1b18;
+        --muted: #6b6860;
+        --line: #e4e1d8;
+        --soft: #f0eee7;
+        --accent: #2b2a26;
+        --execute: #1f7a4d;
+        --execute-bg: #e3f3ea;
+        --ask: #2459b3;
+        --ask-bg: #e4ecfa;
+        --defer: #9a6400;
+        --defer-bg: #fbf0d9;
+        --escalate: #7a3fb0;
+        --escalate-bg: #f0e6fa;
+        --refuse: #b42318;
+        --refuse-bg: #fbe4e1;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141413;
+          --panel: #1d1c1a;
+          --ink: #ecebe6;
+          --muted: #a09d94;
+          --line: #2f2e2a;
+          --soft: #252420;
+          --accent: #ecebe6;
+          --execute: #5fd39a;
+          --execute-bg: #173326;
+          --ask: #8ab4ff;
+          --ask-bg: #1a2740;
+          --defer: #f2c057;
+          --defer-bg: #3a2e12;
+          --escalate: #c79bf2;
+          --escalate-bg: #2e2140;
+          --refuse: #ff8a80;
+          --refuse-bg: #3d1b18;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Inter,
+          Roboto,
+          sans-serif;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header {
+        padding: 32px 0 20px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+      .tagline {
+        font-size: 17px;
+        color: var(--muted);
+        margin: 0 0 16px;
+        max-width: 720px;
+      }
+      .tagline b {
+        color: var(--ink);
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .pill {
+        font-size: 12.5px;
+        padding: 4px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--muted);
+      }
+      .pill b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .pill.ok b {
+        color: var(--execute);
+      }
+      .pill.bad b {
+        color: var(--refuse);
+      }
+
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin: 18px 0 4px;
+        font-size: 13px;
+      }
+      .flow span.step {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 6px 10px;
+      }
+      .flow span.arrow {
+        color: var(--muted);
+      }
+
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin: 18px 0 8px;
+      }
+      .legend div {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      @media (max-width: 760px) {
+        .legend {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      nav.tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--line);
+        margin: 20px 0 18px;
+        overflow-x: auto;
+      }
+      nav.tabs button {
+        background: none;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        padding: 10px 14px;
+        font: inherit;
+        color: var(--muted);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      nav.tabs button.active {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .item {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        cursor: pointer;
+        text-align: left;
+        font: inherit;
+        color: inherit;
+        width: 100%;
+      }
+      .item:hover {
+        border-color: var(--muted);
+      }
+      .item.active {
+        border-color: var(--ink);
+        box-shadow: 0 0 0 1px var(--ink);
+      }
+      .item .t {
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .item .s {
+        color: var(--muted);
+        font-size: 13.5px;
+        margin-top: 3px;
+      }
+      .item .id {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .group {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 12px 0 2px;
+      }
+      .group:first-child {
+        margin-top: 0;
+      }
+
+      .chip {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      .v-EXECUTE {
+        color: var(--execute);
+        background: var(--execute-bg);
+      }
+      .v-ASK {
+        color: var(--ask);
+        background: var(--ask-bg);
+      }
+      .v-DEFER {
+        color: var(--defer);
+        background: var(--defer-bg);
+      }
+      .v-ESCALATE {
+        color: var(--escalate);
+        background: var(--escalate-bg);
+      }
+      .v-REFUSE {
+        color: var(--refuse);
+        background: var(--refuse-bg);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 48px 16px;
+      }
+
+      .proposal {
+        border: 1px dashed var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+        background: var(--soft);
+      }
+      .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .quote {
+        font-style: italic;
+        margin: 0 0 10px;
+      }
+      .code {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .note {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .down {
+        text-align: center;
+        color: var(--muted);
+        margin: -4px 0 10px;
+        font-size: 13px;
+      }
+
+      .verdict {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .verdict .big {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        padding: 6px 14px;
+        border-radius: 10px;
+      }
+      .reason {
+        font-size: 16px;
+        margin: 6px 0 4px;
+      }
+      .next {
+        font-size: 14.5px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--soft);
+        margin: 10px 0 16px;
+      }
+      .next b {
+        margin-right: 4px;
+      }
+
+      .meters {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      @media (max-width: 600px) {
+        .meters {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .meter {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .meter .k {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .meter .v {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+      .bar {
+        height: 5px;
+        background: var(--soft);
+        border-radius: 3px;
+        margin-top: 6px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        border-radius: 3px;
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      @media (max-width: 600px) {
+        .facts {
+          grid-template-columns: 1fr;
+        }
+      }
+      .facts ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 13.5px;
+      }
+      .facts li {
+        margin: 2px 0;
+      }
+      .facts .bad li {
+        color: var(--refuse);
+      }
+      .facts .wait li {
+        color: var(--defer);
+      }
+      .facts .need li {
+        color: var(--ask);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      th {
+        text-align: left;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 7px 8px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      tr.decided td {
+        background: var(--soft);
+        font-weight: 600;
+      }
+      tr.skip td {
+        color: var(--muted);
+      }
+      .trace td:first-child {
+        white-space: nowrap;
+      }
+      @media (max-width: 600px) {
+        .trace th:nth-child(2),
+        .trace td:nth-child(2) {
+          display: none;
+        }
+        .trace td:first-child {
+          white-space: normal;
+        }
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+
+      .hash {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 14px;
+        word-break: break-all;
+      }
+      .btn {
+        background: var(--ink);
+        color: var(--bg);
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn.ghost {
+        background: none;
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .banner {
+        padding: 10px 14px;
+        border-radius: 10px;
+        margin: 10px 0;
+        font-size: 14px;
+      }
+      .banner.info {
+        background: var(--defer-bg);
+        color: var(--defer);
+      }
+      .banner.err {
+        background: var(--refuse-bg);
+        color: var(--refuse);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+        padding: 36px 0 48px;
+      }
+      footer a {
+        color: inherit;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Decision Engine</h1>
+        <p class="tagline">
+          Most AI agents do whatever they're told. Here,
+          <b>the AI agent only proposes</b>. A deterministic engine checks the
+          facts itself and decides whether it is allowed to act.
+        </p>
+        <div class="pills">
+          <span class="pill">Policy <b id="p-version">…</b></span>
+          <span class="pill">Agent <b id="p-agent">…</b></span>
+          <span class="pill" id="p-chain">Audit chain <b>…</b></span>
+        </div>
+        <div class="flow" aria-label="How a decision flows">
+          <span class="step">🤖 Agent proposes</span
+          ><span class="arrow">→</span>
+          <span class="step">📚 Facts from system of record</span
+          ><span class="arrow">→</span>
+          <span class="step"
+            >📏 Signals: confidence · risk · reversibility · cost</span
+          ><span class="arrow">→</span>
+          <span class="step">⚖️ Ordered policy rules</span
+          ><span class="arrow">→</span> <span class="step">✅ Verdict</span
+          ><span class="arrow">→</span>
+          <span class="step">🔗 Hash-chained audit</span>
+        </div>
+        <div class="legend">
+          <div>
+            <span class="chip v-EXECUTE">EXECUTE</span><br />Safe, confident,
+            cheap to be wrong.
+          </div>
+          <div>
+            <span class="chip v-ASK">ASK</span><br />Missing info only the
+            requester has.
+          </div>
+          <div>
+            <span class="chip v-DEFER">DEFER</span><br />Waiting will answer it
+            (CI, a return).
+          </div>
+          <div>
+            <span class="chip v-ESCALATE">ESCALATE</span><br />Allowed, but a
+            human must judge.
+          </div>
+          <div>
+            <span class="chip v-REFUSE">REFUSE</span><br />A hard policy forbids
+            it. Always.
+          </div>
+        </div>
+        <div class="banner info" id="waking" hidden>
+          Waking the server up (free hosting sleeps when idle). This can take up
+          to a minute…
+        </div>
+        <div class="banner err" id="error" hidden></div>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button class="active" data-tab="agent" role="tab">
+          1 · AI agent on real tickets
+        </button>
+        <button data-tab="scenarios" role="tab">2 · Scenario library</button>
+        <button data-tab="audit" role="tab">3 · Audit trail</button>
+      </nav>
+
+      <section id="tab-agent">
+        <div class="grid">
+          <div>
+            <p class="note" style="margin-top: 0">
+              Pick a ticket. The agent reads it and proposes an action. Try
+              <b>T-102</b>: it contains a prompt injection.
+            </p>
+            <div class="list" id="tickets"></div>
+          </div>
+          <div id="agent-result" class="panel">
+            <div class="empty">
+              Pick a ticket to watch the agent propose and the engine decide.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-scenarios" hidden>
+        <div class="grid">
+          <div class="list" id="scenarios"></div>
+          <div id="scenario-result" class="panel">
+            <div class="empty">
+              Pick a scenario. Each one shows a different verdict.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-audit" hidden>
+        <div class="panel">
+          <div class="row">
+            <button class="btn" id="verify">Verify chain integrity</button>
+            <button class="btn ghost" id="refresh">Refresh</button>
+            <span id="verify-result" class="note" style="margin: 0"></span>
+          </div>
+          <p class="note">
+            Every decision is recorded with its inputs, signals, rule trace and
+            outcome. Each entry stores the previous entry's hash, so editing or
+            deleting history is detectable.
+          </p>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time (UTC)</th>
+                  <th>Action</th>
+                  <th>Source</th>
+                  <th>Verdict</th>
+                  <th>Rule</th>
+                  <th>Hash</th>
+                </tr>
+              </thead>
+              <tbody id="audit-rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          id="audit-detail"
+          class="panel"
+          style="margin-top: 16px"
+          hidden
+        ></div>
+      </section>
+
+      <footer>
+        Built for the DOO Builders League · Decision Engine challenge. Engine:
+        Java + Spring Boot. Policy rules are deterministic; the LLM never
+        decides.
+        <a href="/api/policy">/api/policy</a> ·
+        <a href="/api/audit">/api/audit</a> ·
+        <a href="/api/audit/verify">/api/audit/verify</a>
+      </footer>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const esc = (v) =>
+        String(v ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      const pct = (x) => Math.round((x ?? 0) * 100);
+      const money = (x) =>
+        "$" +
+        Number(x ?? 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
+      const chip = (v) => `<span class="chip v-${esc(v)}">${esc(v)}</span>`;
+
+      // ---- API with "server is waking up" handling ----
+      async function api(path, opts = {}) {
+        const slow = setTimeout(() => ($("#waking").hidden = false), 3000);
+        try {
+          const res = await fetch(path, opts);
+          if (!res.ok)
+            throw new Error(
+              `${opts.method || "GET"} ${path} returned ${res.status}`,
+            );
+          $("#error").hidden = true;
+          return await res.json();
+        } catch (e) {
+          $("#error").textContent = "Could not reach the engine: " + e.message;
+          $("#error").hidden = false;
+          throw e;
+        } finally {
+          clearTimeout(slow);
+          $("#waking").hidden = true;
+        }
+      }
+
+      // ---- Tabs ----
+      document.querySelectorAll("nav.tabs button").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll("nav.tabs button")
+            .forEach((b) => b.classList.toggle("active", b === btn));
+          ["agent", "scenarios", "audit"].forEach(
+            (t) => ($("#tab-" + t).hidden = t !== btn.dataset.tab),
+          );
+          if (btn.dataset.tab === "audit") loadAudit();
+        }),
+      );
+
+      // ---- Rendering one decision ----
+      function list(items, cls) {
+        return items && items.length
+          ? `<ul class="${cls}">${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`
+          : `<p class="note" style="margin:0">None</p>`;
+      }
+
+      function renderDecision(entry) {
+        const d = entry.decision,
+          s = d.signals;
+        const params = Object.entries(entry.input.params || {})
+          .map(([k, v]) => `${k}: ${typeof v === "string" ? '"' + v + '"' : v}`)
+          .join(", ");
+        return `
+    <div class="label">Engine decides</div>
+    <div class="verdict"><span class="big v-${esc(d.verdict)}">${esc(d.verdict)}</span>
+      <span class="mono">${esc(entry.input.domain)}.${esc(entry.input.type)}(${esc(params)})</span></div>
+    <p class="reason">${esc(d.reasoning)}</p>
+    <div class="next"><b>Next step:</b>${esc(d.nextStep)}</div>
+
+    <div class="meters">
+      <div class="meter"><div class="k">Confidence</div><div class="v">${pct(s.confidence)}%</div><div class="bar"><i style="width:${pct(s.confidence)}%"></i></div></div>
+      <div class="meter"><div class="k">Risk</div><div class="v">${pct(s.risk)}%</div><div class="bar"><i style="width:${pct(s.risk)}%"></i></div></div>
+      <div class="meter"><div class="k">Reversible</div><div class="v">${s.reversible ? "Yes" : "No"}</div></div>
+      <div class="meter"><div class="k">Cost if wrong</div><div class="v">${money(s.costOfErrorUsd)}</div></div>
+    </div>
+
+    <div class="facts">
+      <div><div class="label">Evidence checked</div>${list(s.evidence, "")}</div>
+      <div>
+        ${s.violations.length ? `<div class="label">Policy violations</div>${list(s.violations, "bad")}` : ""}
+        ${s.missingInfo.length ? `<div class="label">Missing information</div>${list(s.missingInfo, "need")}` : ""}
+        ${s.pending.length ? `<div class="label">Waiting on</div>${list(s.pending, "wait")}` : ""}
+        ${!s.violations.length && !s.missingInfo.length && !s.pending.length ? `<div class="label">Blockers</div><p class="note" style="margin:0">No violations, nothing missing, nothing pending.</p>` : ""}
+        <div class="label" style="margin-top:10px">Approver if escalated</div><p style="margin:0" class="mono">${esc(s.approver)}</p>
+      </div>
+    </div>
+
+    <div class="label">Rule trace (checked top to bottom, first match decides)</div>
+    <div class="scroll"><table class="trace">
+      <thead><tr><th>Rule</th><th>Would give</th><th>Matched</th><th>Why</th></tr></thead>
+      <tbody>${d.trace
+        .map(
+          (c) => `
+        <tr class="${c.decided ? "decided" : c.matched ? "" : "skip"}">
+          <td class="mono">${c.decided ? "→ " : ""}${esc(c.rule)}</td><td>${chip(c.verdict)}</td>
+          <td>${c.matched ? (c.decided ? "decides" : "yes") : "no"}</td><td>${esc(c.detail)}</td></tr>`,
+        )
+        .join("")}
+      </tbody></table></div>
+    <div class="hash">audit ${esc(entry.id)} · policy ${esc(d.policyVersion)}<br>hash ${esc(entry.hash)}<br>prev ${esc(entry.prevHash)}</div>`;
+      }
+
+      function renderProposal(entry, ticket) {
+        const p = entry.proposal;
+        if (!p) return "";
+        return `
+    <div class="proposal">
+      <div class="label">Ticket ${esc(ticket.id)} · ${esc(ticket.subject)}</div>
+      <p class="quote">“${esc(ticket.text)}”</p>
+      <div class="label">Agent proposes (${esc(p.proposer)})</div>
+      <div class="code">${esc(entry.input.domain)}.${esc(entry.input.type)} ${esc(JSON.stringify(entry.input.params))}</div>
+      <div class="note">Rationale: ${esc(p.rationale)}<br>
+        Agent says it is <b>${pct(p.selfReportedConfidence)}% confident</b>. The engine ignores this: an agent grading its own homework is not evidence.</div>
+    </div>
+    <div class="down">↓ the engine checks the facts itself ↓</div>`;
+      }
+
+      // ---- Tab 1: agent on tickets ----
+      let tickets = [];
+      async function loadTickets() {
+        tickets = await api("/api/tickets");
+        $("#tickets").innerHTML = tickets
+          .map(
+            (t) => `
+    <button class="item" data-ticket="${esc(t.id)}">
+      <div class="t">${esc(t.subject)} <span class="id">${esc(t.id)}</span></div>
+      <div class="s">${esc(t.text)}</div>
+    </button>`,
+          )
+          .join("");
+        document
+          .querySelectorAll("[data-ticket]")
+          .forEach((el) =>
+            el.addEventListener("click", () => runTicket(el.dataset.ticket)),
+          );
+      }
+      async function runTicket(id) {
+        document
+          .querySelectorAll("[data-ticket]")
+          .forEach((el) =>
+            el.classList.toggle("active", el.dataset.ticket === id),
+          );
+        $("#agent-result").innerHTML =
+          `<div class="empty">Agent is reading ${esc(id)}…</div>`;
+        const entry = await api(
+          `/api/agent/tickets/${encodeURIComponent(id)}`,
+          { method: "POST" },
+        );
+        const ticket = tickets.find((t) => t.id === id);
+        $("#agent-result").innerHTML =
+          renderProposal(entry, ticket) + renderDecision(entry);
+        refreshChain();
+      }
+
+      // ---- Tab 2: scenarios ----
+      async function loadScenarios() {
+        const scenarios = await api("/api/scenarios");
+        const groups = {};
+        scenarios.forEach((s) => (groups[s.action.domain] ??= []).push(s));
+        const names = {
+          refund: "Refund approval",
+          deploy: "Code deploy",
+          ticket: "Ticket triage",
+        };
+        $("#scenarios").innerHTML = Object.entries(groups)
+          .map(
+            ([domain, items]) => `
+    <div class="group">${esc(names[domain] || "Other")}</div>
+    ${items
+      .map(
+        (s) => `
+      <button class="item" data-scenario="${esc(s.id)}">
+        <div class="t">${esc(s.title)} ${chip(s.expected)}</div>
+        <div class="s">${esc(s.story)}</div>
+      </button>`,
+      )
+      .join("")}`,
+          )
+          .join("");
+        document
+          .querySelectorAll("[data-scenario]")
+          .forEach((el) =>
+            el.addEventListener("click", () =>
+              runScenario(el.dataset.scenario),
+            ),
+          );
+      }
+      async function runScenario(id) {
+        document
+          .querySelectorAll("[data-scenario]")
+          .forEach((el) =>
+            el.classList.toggle("active", el.dataset.scenario === id),
+          );
+        const entry = await api(
+          `/api/scenarios/${encodeURIComponent(id)}/run`,
+          { method: "POST" },
+        );
+        $("#scenario-result").innerHTML = renderDecision(entry);
+        refreshChain();
+      }
+
+      // ---- Tab 3: audit ----
+      let auditEntries = [];
+      async function loadAudit() {
+        auditEntries = await api("/api/audit?limit=100");
+        $("#audit-rows").innerHTML = auditEntries
+          .map(
+            (e, i) => `
+    <tr style="cursor:pointer" data-audit="${i}">
+      <td class="mono">${esc(String(e.timestamp).replace("T", " ").slice(0, 19))}</td>
+      <td class="mono">${esc(e.input.domain)}.${esc(e.input.type)}</td>
+      <td>${e.proposal ? "🤖 " + esc(e.proposal.sourceTicketId) : "direct"}</td>
+      <td>${chip(e.decision.verdict)}</td>
+      <td class="mono">${esc(e.decision.ruleFired)}</td>
+      <td class="mono">${esc(e.hash.slice(0, 10))}…</td></tr>`,
+          )
+          .join("");
+        document.querySelectorAll("[data-audit]").forEach((row) =>
+          row.addEventListener("click", () => {
+            const e = auditEntries[Number(row.dataset.audit)];
+            const ticket = e.proposal
+              ? tickets.find((t) => t.id === e.proposal.sourceTicketId)
+              : null;
+            $("#audit-detail").innerHTML =
+              (ticket ? renderProposal(e, ticket) : "") + renderDecision(e);
+            $("#audit-detail").hidden = false;
+            $("#audit-detail").scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }),
+        );
+      }
+      async function refreshChain() {
+        try {
+          const v = await api("/api/audit/verify");
+          const pill = $("#p-chain");
+          pill.className = "pill " + (v.valid ? "ok" : "bad");
+          pill.innerHTML = `Audit chain <b>${v.valid ? "✓ intact" : "✗ broken"}</b> · ${v.entriesChecked} entries`;
+          return v;
+        } catch (e) {
+          /* banner already shown */
+        }
+      }
+      $("#verify").addEventListener("click", async () => {
+        const v = await refreshChain();
+        if (v)
+          $("#verify-result").textContent = v.valid
+            ? `✓ ${v.entriesChecked} entries verified. No history has been edited or removed.`
+            : `✗ ${v.message} at entry ${v.brokenAt}`;
+      });
+      $("#refresh").addEventListener("click", loadAudit);
+
+      // ---- Boot ----
+      (async function init() {
+        try {
+          const policy = await api("/api/policy");
+          $("#p-version").textContent = policy.version;
+          $("#p-agent").textContent = policy.agent;
+          await Promise.all([loadTickets(), loadScenarios(), refreshChain()]);
+        } catch (e) {
+          /* banner shows the error */
+        }
+      })();
+    </script>
+  </body>
+</html>

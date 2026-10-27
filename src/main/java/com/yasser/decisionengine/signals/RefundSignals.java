@@ -6,6 +6,7 @@ import com.yasser.decisionengine.data.SystemOfRecord;
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Signals;
 import org.springframework.stereotype.Component;
+
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -92,7 +93,8 @@ public class RefundSignals implements SignalProvider {
                 s.adjustConfidence(-0.3).risk(s.risk() + 0.3)
                         .evidence(customer.refundsLast90Days() + " refunds in the last 90 days (frequent refunder)");
             } else {
-                s.evidence(customer.refundsLast90Days() + " refunds in the last 90 days");
+                s.evidence(customer.refundsLast90Days() + (customer.refundsLast90Days() == 1 ? " refund" : " refunds")
+                        + " in the last 90 days");
             }
             if ("vip".equals(customer.tier()))
                 s.evidence("VIP customer");

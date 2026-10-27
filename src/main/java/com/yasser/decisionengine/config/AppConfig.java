@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.json.JsonMapper;
+
 import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.Duration;
@@ -27,8 +28,8 @@ public class AppConfig {
     /** Uses a real LLM when LLM_API_KEY is set, otherwise the rule-based agent. */
     @Bean
     public ActionProposer actionProposer(@Value("${llm.api-key:}") String apiKey,
-            @Value("${llm.base-url}") String baseUrl,
-            @Value("${llm.model}") String model) {
+            @Value("${llm.base-url:https://api.groq.com/openai/v1}") String baseUrl,
+            @Value("${llm.model:llama-3.3-70b-versatile}") String model) {
         ActionProposer rules = new RuleBasedProposer();
         if (apiKey == null || apiKey.isBlank()) {
             log.info("No LLM_API_KEY set: using the rule-based agent");
