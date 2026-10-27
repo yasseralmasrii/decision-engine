@@ -6,6 +6,7 @@ import com.yasser.decisionengine.data.SystemOfRecord;
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Signals;
 import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,9 +27,7 @@ public class DeploySignals implements SignalProvider {
     }
 
     @Override
-    public String domain() {
-        return "deploy";
-    }
+    public String domain() { return "deploy"; }
 
     @Override
     public Signals compute(ProposedAction action) {
@@ -39,14 +38,10 @@ public class DeploySignals implements SignalProvider {
         String env = Params.str(p, "environment");
         String commit = Params.str(p, "commit");
 
-        if (serviceName == null)
-            s.missing("service");
-        if (env == null)
-            s.missing("environment");
-        if (commit == null)
-            s.missing("commit");
-        if (serviceName == null || env == null || commit == null)
-            return s.build();
+        if (serviceName == null) s.missing("service");
+        if (env == null) s.missing("environment");
+        if (commit == null) s.missing("commit");
+        if (serviceName == null || env == null || commit == null) return s.build();
 
         if (!ENVIRONMENTS.contains(env)) {
             return s.violation("Unknown environment '" + env + "'").build();
@@ -81,10 +76,8 @@ public class DeploySignals implements SignalProvider {
                     .pending(run.id() + " (commit " + commit + ") to finish");
             case "FAILED" -> {
                 s.confidence(0.1).evidence(run.id() + " FAILED");
-                if (prod)
-                    s.violation("Production deploys require passing CI (" + run.id() + " failed)");
-                else
-                    s.risk(s.risk() + 0.3);
+                if (prod) s.violation("Production deploys require passing CI (" + run.id() + " failed)");
+                else s.risk(s.risk() + 0.3);
             }
             default -> s.confidence(0.3).evidence("Unknown CI status '" + run.status() + "'");
         }
@@ -95,12 +88,11 @@ public class DeploySignals implements SignalProvider {
         } else {
             s.evidence(run.changedFiles() + " files changed");
         }
-        if (service.critical())
-            s.risk(s.risk() + 0.1).evidence("Critical service");
+        if (service.critical()) s.risk(s.risk() + 0.1).evidence("Critical service");
 
         s.reversible(service.rollbackAvailable())
-                .evidence(service.rollbackAvailable() ? "Rollback available" : "No rollback plan")
-                .costOfErrorUsd(prod ? (service.rollbackAvailable() ? 300 : 2000) : 20);
+         .evidence(service.rollbackAvailable() ? "Rollback available" : "No rollback plan")
+         .costOfErrorUsd(prod ? (service.rollbackAvailable() ? 300 : 2000) : 20);
 
         return s.build();
     }

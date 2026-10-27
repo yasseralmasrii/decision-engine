@@ -3,36 +3,51 @@ package com.yasser.decisionengine.signals;
 import com.yasser.decisionengine.data.Records.Customer;
 import com.yasser.decisionengine.data.Records.Order;
 import com.yasser.decisionengine.data.SystemOfRecord;
+import com.yasser.decisionengine.ledger.RefundLedger;
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Signals;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Refund approval. The agent only supplies orderId + amount (+ optional
- * method);
- * everything else is looked up.
+ * Refund approval. The agent only supplies orderId and amount (and optionally a method);
+ * everything else is looked up, including refunds this engine has already approved.
  */
 @Component
 public class RefundSignals implements SignalProvider {
 
     static final int REFUND_WINDOW_DAYS = 30;
     static final int FREQUENT_REFUNDER = 3;
+    static final double CUSTOMER_DAILY_AUTO_LIMIT_USD = 150;
+    static final Duration VELOCITY_WINDOW = Duration.ofHours(24);
     static final Set<String> METHODS = Set.of("card", "store_credit");
 
     private final SystemOfRecord records;
+    private final RefundLedger ledger;
+    private final Clock clock;
 
-    public RefundSignals(SystemOfRecord records) {
+    public RefundSignals(SystemOfRecord records, RefundLedger ledger, Clock clock) {
         this.records = records;
+        this.ledger = ledger;
+        this.clock = clock;
     }
 
     @Override
-    public String domain() {
-        return "refund";
+    public void onExecuted(ProposedAction action) {
+        String orderId = Params.str(action.params(), "orderId");
+        double amount = Params.num(action.params(), "amount", 0);
+        records.order(orderId).ifPresent(order ->
+                ledger.record(new RefundLedger.Approval(order.id(), order.customerId(), amount, Instant.now(clock))));
     }
+
+    @Override
+    public String domain() { return "refund"; }
 
     @Override
     public Signals compute(ProposedAction action) {
@@ -43,12 +58,9 @@ public class RefundSignals implements SignalProvider {
         double amount = Params.num(p, "amount", 0);
         s.costOfErrorUsd(amount).risk(amount / 1000.0);
 
-        if (orderId == null)
-            s.missing("orderId");
-        if (amount <= 0)
-            s.missing("refund amount");
-        if (orderId == null)
-            return s.build();
+        if (orderId == null) s.missing("orderId");
+        if (amount <= 0) s.missing("refund amount");
+        if (orderId == null) return s.build();
 
         Optional<Order> found = records.order(orderId);
         if (found.isEmpty()) {
@@ -59,10 +71,18 @@ public class RefundSignals implements SignalProvider {
         s.evidence(String.format(Locale.ROOT, "Order %s: $%.2f paid by %s, status %s",
                 order.id(), order.total(), order.paymentMethod(), order.status()));
 
+        // --- Memory: refunds this engine already approved on this order ---
+        double alreadyApproved = ledger.approvedForOrder(order.id());
+        double refundable = Math.max(0, order.refundable() - alreadyApproved);
+        if (alreadyApproved > 0) {
+            s.evidence(String.format(Locale.ROOT, "$%.2f already approved by this engine on %s",
+                    alreadyApproved, order.id()));
+        }
+
         // --- Hard policies: these REFUSE, no matter how confident anyone is ---
-        if (amount > order.refundable() + 0.005) {
+        if (amount > refundable + 0.005) {
             s.violation(String.format(Locale.ROOT, "Refund $%.2f exceeds refundable balance $%.2f on %s",
-                    amount, order.refundable(), order.id()));
+                    amount, refundable, order.id()));
         }
         if (customer != null && customer.fraudHold()) {
             s.violation("Customer " + customer.id() + " is on fraud hold");
@@ -93,16 +113,25 @@ public class RefundSignals implements SignalProvider {
                 s.adjustConfidence(-0.3).risk(s.risk() + 0.3)
                         .evidence(customer.refundsLast90Days() + " refunds in the last 90 days (frequent refunder)");
             } else {
-                s.evidence(customer.refundsLast90Days() + (customer.refundsLast90Days() == 1 ? " refund" : " refunds")
-                        + " in the last 90 days");
+                s.evidence(customer.refundsLast90Days() + (customer.refundsLast90Days() == 1 ? " refund" : " refunds") + " in the last 90 days");
             }
-            if ("vip".equals(customer.tier()))
-                s.evidence("VIP customer");
+            if ("vip".equals(customer.tier())) s.evidence("VIP customer");
+
+            // --- Velocity: stops a large refund being split into many small ones ---
+            double recent = ledger.approvedForCustomerSince(customer.id(), Instant.now(clock).minus(VELOCITY_WINDOW));
+            if (recent + amount > CUSTOMER_DAILY_AUTO_LIMIT_USD) {
+                s.raiseRiskTo(0.7).evidence(String.format(Locale.ROOT,
+                        "$%.2f already auto-approved for %s in 24 hours; this would make $%.2f (limit $%.0f)",
+                        recent, customer.id(), recent + amount, CUSTOMER_DAILY_AUTO_LIMIT_USD));
+            } else if (recent > 0) {
+                s.evidence(String.format(Locale.ROOT, "$%.2f auto-approved for %s in the last 24 hours",
+                        recent, customer.id()));
+            }
         }
 
         boolean storeCredit = "store_credit".equals(method);
         s.reversible(storeCredit)
-                .evidence(storeCredit ? "Store credit can be revoked" : "Card refund cannot be pulled back");
+         .evidence(storeCredit ? "Store credit can be revoked" : "Card refund cannot be pulled back");
 
         return s.build();
     }

@@ -30,10 +30,7 @@ async function request(path, { method = "GET", body } = {}) {
     });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new ApiError(
-        data?.error ?? `${method} ${path} returned ${response.status}`,
-        response.status,
-      );
+      throw new ApiError(data?.error ?? `${method} ${path} returned ${response.status}`, response.status);
     }
     emit("ok");
     return data;
@@ -53,9 +50,7 @@ export const api = {
   scenarios: () => request("/api/scenarios"),
   record: (limit = 60) => request(`/api/audit?limit=${limit}`),
   verify: () => request("/api/audit/verify"),
-  runAgent: (ticketId) =>
-    request(`/api/agent/tickets/${id(ticketId)}`, { method: "POST" }),
-  runScenario: (scenarioId) =>
-    request(`/api/scenarios/${id(scenarioId)}/run`, { method: "POST" }),
+  runAgent: (ticketId) => request(`/api/agent/tickets/${id(ticketId)}`, { method: "POST" }),
+  runScenario: (scenarioId) => request(`/api/scenarios/${id(scenarioId)}/run`, { method: "POST" }),
   decide: (action) => request("/api/decide", { method: "POST", body: action }),
 };

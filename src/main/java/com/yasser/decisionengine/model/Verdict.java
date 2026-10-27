@@ -1,11 +1,10 @@
 package com.yasser.decisionengine.model;
 
 /**
- * The five possible outcomes of the decision layer, ordered from least to most
- * cautious.
+ * The five possible outcomes of the decision layer, ordered from least to most cautious.
  *
- * ASK = information only the requester can give is missing.
- * DEFER = evidence is still arriving; waiting alone will resolve it.
+ * ASK      = information only the requester can give is missing.
+ * DEFER    = evidence is still arriving; waiting alone will resolve it.
  * ESCALATE = a human with authority must judge it.
  */
 public enum Verdict {

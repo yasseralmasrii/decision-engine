@@ -8,8 +8,7 @@ import java.util.List;
  * @param verdict       execute, ask, defer, escalate or refuse
  * @param ruleFired     the rule that decided
  * @param reasoning     why, in one sentence
- * @param nextStep      what should happen now (the question, the wait, the
- *                      approver...)
+ * @param nextStep      what should happen now (the question, the wait, the approver...)
  * @param signals       the measurements the decision was based on
  * @param trace         every rule, in order, and how it evaluated
  * @param policyVersion which rule set produced this decision
@@ -21,7 +20,8 @@ public record Decision(
         String nextStep,
         Signals signals,
         List<RuleCheck> trace,
-        String policyVersion) {
+        String policyVersion
+) {
     public Decision {
         trace = trace == null ? List.of() : List.copyOf(trace);
     }

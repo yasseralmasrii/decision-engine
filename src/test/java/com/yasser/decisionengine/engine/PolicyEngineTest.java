@@ -5,6 +5,7 @@ import com.yasser.decisionengine.model.RuleCheck;
 import com.yasser.decisionengine.model.Verdict;
 import com.yasser.decisionengine.signals.SignalsBuilder;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

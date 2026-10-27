@@ -1,3 +1,6 @@
+/* Layout: page regions only. Component internals live in components.css. */
+
+/* ---------- Top bar ---------- */
 .topbar {
   position: sticky;
   top: 0;
@@ -29,6 +32,7 @@
 .status dd.is-ok { color: var(--execute); }
 .status dd.is-bad { color: var(--refuse); }
 
+/* ---------- Intro ---------- */
 .intro {
   max-width: var(--max);
   margin: 0 auto;
@@ -55,6 +59,7 @@
   line-height: 1.5;
 }
 
+/* ---------- Workspace: docket | case file | record ---------- */
 .workspace {
   max-width: var(--max);
   margin: 0 auto;
@@ -76,6 +81,7 @@
 
 .case { min-width: 0; outline: none; }
 
+/* ---------- Footer ---------- */
 .footer {
   margin-top: 24px;
   background: var(--sheet);
@@ -108,6 +114,7 @@
   font-size: var(--t-xs);
 }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 1280px) {
   .workspace { grid-template-columns: 236px minmax(0, 1fr); }
   .record { grid-column: 1 / -1; position: static; max-height: none; }

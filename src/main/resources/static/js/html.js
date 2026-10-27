@@ -4,25 +4,14 @@
  * This keeps ticket text, which is untrusted, from ever becoming markup.
  */
 
-const ESCAPES = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
+const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
 class SafeHtml {
-  constructor(value) {
-    this.value = value;
-  }
-  toString() {
-    return this.value;
-  }
+  constructor(value) { this.value = value; }
+  toString() { return this.value; }
 }
 
-export const escapeHtml = (value) =>
-  String(value ?? "").replace(/[&<>"']/g, (c) => ESCAPES[c]);
+export const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ESCAPES[c]);
 
 export const raw = (value) => new SafeHtml(String(value));
 

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,10 +72,14 @@ public class DecisionController {
         return Scenarios.ALL;
     }
 
+    /**
+     * Scenarios are dry runs: the ruling is recorded, but nothing is remembered as
+     * executed.
+     */
     @PostMapping("/scenarios/{id}/run")
     public ResponseEntity<AuditEntry> runScenario(@PathVariable("id") String id) {
         return Scenarios.find(id)
-                .map(s -> audit.record(s.action(), decisions.decide(s.action())))
+                .map(s -> audit.record(s.action(), decisions.preview(s.action())))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

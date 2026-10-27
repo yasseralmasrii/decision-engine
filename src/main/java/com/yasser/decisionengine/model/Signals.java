@@ -24,7 +24,8 @@ public record Signals(
         List<String> missingInfo,
         List<String> pending,
         List<String> violations,
-        String approver) {
+        String approver
+) {
     public Signals {
         evidence = copy(evidence);
         missingInfo = copy(missingInfo);

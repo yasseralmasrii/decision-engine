@@ -1,34 +1,29 @@
 package com.yasser.decisionengine.demo;
 
-import com.yasser.decisionengine.data.SystemOfRecord;
+import com.yasser.decisionengine.TestEngine;
 import com.yasser.decisionengine.engine.DecisionService;
-import com.yasser.decisionengine.engine.PolicyEngine;
 import com.yasser.decisionengine.model.Decision;
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Verdict;
-import com.yasser.decisionengine.signals.DeploySignals;
-import com.yasser.decisionengine.signals.RefundSignals;
-import com.yasser.decisionengine.signals.TicketSignals;
 import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Every curated demo scenario must produce the verdict it promises. */
 class ScenarioTest {
 
-    private static final SystemOfRecord RECORDS = new SystemOfRecord();
-    private final DecisionService service = new DecisionService(
-            List.of(new RefundSignals(RECORDS), new DeploySignals(RECORDS), new TicketSignals(RECORDS)),
-            new PolicyEngine());
+    private final DecisionService service = TestEngine.decisions();
 
     @Test
     void everyScenarioProducesItsExpectedVerdict() {
         List<String> failures = new ArrayList<>();
         for (var s : Scenarios.ALL) {
-            Decision d = service.decide(s.action());
+            Decision d = service.preview(s.action());
             if (d.verdict() != s.expected()) {
                 failures.add(s.id() + ": expected " + s.expected() + " but got " + d.verdict()
                         + " (rule " + d.ruleFired() + ", " + d.reasoning() + ")");

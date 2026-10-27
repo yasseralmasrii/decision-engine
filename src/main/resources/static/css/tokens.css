@@ -1,4 +1,7 @@
+/* Design tokens: the single source for color, type, spacing and depth. */
+
 :root {
+  /* Surfaces: archival grey paper, white case sheets, blue-black ink */
   --paper: #e9ecf0;
   --sheet: #ffffff;
   --wash: #f3f5f8;
@@ -9,24 +12,28 @@
   --rule-strong: #b4bcc8;
   --focus: #2a4bd7;
 
+  /* Stamp inks: used only to encode rulings */
   --execute: #17784c;  --execute-wash: #e6f3ec;
   --ask: #2a4bd7;      --ask-wash: #e8edfc;
   --defer: #a05800;    --defer-wash: #fbf0e0;
   --escalate: #6b3db3; --escalate-wash: #f0eafa;
   --refuse: #c2271e;   --refuse-wash: #fbe8e6;
 
+  /* Type */
   --serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
   --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --t-xs: 0.8125rem;   
-  --t-sm: 0.875rem;    
-  --t-base: 0.9375rem; 
-  --t-md: 1.125rem;    
-  --t-lg: 1.375rem;    
-  --t-xl: 1.75rem;     
-  --t-2xl: 3rem;       
+  /* Scale: major third from 15px */
+  --t-xs: 0.8125rem;   /* 13 */
+  --t-sm: 0.875rem;    /* 14 */
+  --t-base: 0.9375rem; /* 15 */
+  --t-md: 1.125rem;    /* 18 */
+  --t-lg: 1.375rem;    /* 22 */
+  --t-xl: 1.75rem;     /* 28 */
+  --t-2xl: 3rem;       /* 48 */
 
+  /* Space and shape: radius grows with the object's importance */
   --gutter: 40px;
   --max: none;
   --r-control: 6px;
@@ -66,6 +73,7 @@
   :root { --gutter: 16px; --t-2xl: 2.25rem; }
 }
 
+/* Each ruling sets --v / --v-wash, so components color themselves by verdict. */
 .v-EXECUTE  { --v: var(--execute);  --v-wash: var(--execute-wash); }
 .v-ASK      { --v: var(--ask);      --v-wash: var(--ask-wash); }
 .v-DEFER    { --v: var(--defer);    --v-wash: var(--defer-wash); }

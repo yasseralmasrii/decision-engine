@@ -1,21 +1,16 @@
 package com.yasser.decisionengine.agent;
 
+import com.yasser.decisionengine.TestEngine;
 import com.yasser.decisionengine.audit.AuditLog;
 import com.yasser.decisionengine.data.Records.Ticket;
 import com.yasser.decisionengine.data.SystemOfRecord;
-import com.yasser.decisionengine.engine.DecisionService;
-import com.yasser.decisionengine.engine.PolicyEngine;
 import com.yasser.decisionengine.model.AuditEntry;
 import com.yasser.decisionengine.model.Verdict;
-import com.yasser.decisionengine.signals.DeploySignals;
-import com.yasser.decisionengine.signals.RefundSignals;
-import com.yasser.decisionengine.signals.TicketSignals;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.http.HttpClient;
 import java.time.Clock;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,13 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** The agent can be fooled. The engine must not be. */
 class AgentFlowTest {
 
-    private static final SystemOfRecord RECORDS = new SystemOfRecord();
+    private static final SystemOfRecord RECORDS = TestEngine.RECORDS;
 
     private TicketAgent agentWith(ActionProposer proposer) {
-        DecisionService decisions = new DecisionService(
-                List.of(new RefundSignals(RECORDS), new DeploySignals(RECORDS), new TicketSignals(RECORDS)),
-                new PolicyEngine());
-        return new TicketAgent(RECORDS, proposer, decisions, new AuditLog(Clock.systemUTC()));
+        return new TicketAgent(RECORDS, proposer, TestEngine.decisions(), new AuditLog(Clock.systemUTC()));
     }
 
     private AuditEntry run(String ticketId) {
@@ -70,7 +62,7 @@ class AgentFlowTest {
         String content = """
                 ```json
                 {"action":{"domain":"refund","type":"issue_refund","params":{"orderId":"A-1001","amount":25}},
-                "rationale":"Damaged item","confidence":0.97}
+                 "rationale":"Damaged item","confidence":0.97}
                 ```""";
         var p = llm.parse(content, t);
         assertEquals("refund", p.action().domain());

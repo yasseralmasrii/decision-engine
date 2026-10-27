@@ -10,10 +10,10 @@ import java.util.Map;
  * the engine looks facts up itself in the system of record.
  */
 public record ProposedAction(
-        String domain, // "refund", "deploy", "ticket"
-        String type, // "issue_refund", "deploy", "route", "send_reply"
+        String domain,              // "refund", "deploy", "ticket"
+        String type,                // "issue_refund", "deploy", "route", "send_reply"
         Map<String, Object> params, // e.g. orderId + amount
-        String requester // who or what asked for it
+        String requester            // who or what asked for it
 ) {
     public ProposedAction {
         domain = normalize(domain);

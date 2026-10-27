@@ -6,8 +6,8 @@ package com.yasser.decisionengine.model;
  * an agent grading its own homework is not evidence.
  */
 public record AgentProposal(
-                String proposer,
-                String rationale,
-                double selfReportedConfidence,
-                String sourceTicketId) {
-}
+        String proposer,
+        String rationale,
+        double selfReportedConfidence,
+        String sourceTicketId
+) {}

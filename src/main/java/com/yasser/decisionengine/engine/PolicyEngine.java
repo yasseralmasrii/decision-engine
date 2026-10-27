@@ -5,6 +5,7 @@ import com.yasser.decisionengine.model.RuleCheck;
 import com.yasser.decisionengine.model.Signals;
 import com.yasser.decisionengine.model.Verdict;
 import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

@@ -2,14 +2,10 @@ package com.yasser.decisionengine.signals;
 
 import java.util.Map;
 
-/**
- * Reads values from an action's params safely (JSON numbers may arrive as
- * strings).
- */
+/** Reads values from an action's params safely (JSON numbers may arrive as strings). */
 public final class Params {
 
-    private Params() {
-    }
+    private Params() {}
 
     public static String str(Map<String, Object> p, String key) {
         Object v = p.get(key);

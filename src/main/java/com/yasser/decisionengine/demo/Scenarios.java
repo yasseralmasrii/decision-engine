@@ -2,6 +2,7 @@ package com.yasser.decisionengine.demo;
 
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Verdict;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,8 +36,8 @@ public final class Scenarios {
         public static final List<Scenario> ALL = List.of(
                         // --- Refunds ---
                         new Scenario("refund-small", "Small refund for a damaged item",
-                                        "$25 card refund on a $45 order, 5 days old, clean customer history.",
-                                        refund("A-1001", 25, null), Verdict.EXECUTE),
+                                        "$25 card refund on a $45 order delivered 5 days ago.",
+                                        refund("A-1009", 25, null), Verdict.EXECUTE),
                         new Scenario("refund-no-order", "Refund without an order number",
                                         "The agent wants to refund $30 but never said which order.",
                                         new ProposedAction("refund", "issue_refund", Map.of("amount", 30),

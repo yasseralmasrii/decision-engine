@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 700" width="1720" height="700" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#48505f"/>
+    </marker>
+    <style>
+      .stage { font-size: 15px; fill: #78808f; }
+      .title { font-size: 19px; font-weight: 700; fill: #1a1f2b; }
+      .body  { font-size: 15px; fill: #48505f; }
+      .label { font-size: 14px; fill: #48505f; }
+      .box   { fill: #ffffff; stroke: #1a1f2b; stroke-width: 1.5; }
+      .store { fill: #f3f5f8; stroke: #b4bcc8; stroke-width: 1.5; }
+      .line  { stroke: #48505f; stroke-width: 1.5; fill: none; }
+      .dash  { stroke: #48505f; stroke-width: 1.5; fill: none; stroke-dasharray: 6 5; }
+    </style>
+  </defs>
+
+  <rect width="1720" height="700" fill="#ffffff"/>
+
+  <!-- Stage headings: the real sequence a decision follows -->
+  <text class="stage" x="40"   y="56">1  Propose</text>
+  <text class="stage" x="380"  y="56">2  Measure</text>
+  <text class="stage" x="720"  y="56">3  Rule</text>
+  <text class="stage" x="1400" y="56">4  Record</text>
+  <line x1="40" y1="72" x2="1680" y2="72" stroke="#d6dbe2" stroke-width="1"/>
+
+  <g transform="translate(0,40)">
+  <!-- 1. Agent -->
+  <rect class="box" x="40" y="170" width="250" height="140" rx="6"/>
+  <text class="title" x="165" y="215" text-anchor="middle">AI agent</text>
+  <text class="body"  x="165" y="245" text-anchor="middle">LLM or rule-based</text>
+  <text class="body"  x="165" y="270" text-anchor="middle">Proposes only.</text>
+  <text class="body"  x="165" y="292" text-anchor="middle">Its confidence is ignored.</text>
+
+  <!-- 2. Signal provider -->
+  <rect class="box" x="380" y="170" width="270" height="140" rx="6"/>
+  <text class="title" x="515" y="215" text-anchor="middle">Signal provider</text>
+  <text class="body"  x="515" y="245" text-anchor="middle">One per domain:</text>
+  <text class="body"  x="515" y="270" text-anchor="middle">refund, deploy, ticket</text>
+
+  <!-- Facts below the provider -->
+  <rect class="store" x="330" y="430" width="200" height="120" rx="6"/>
+  <text class="title" x="430" y="470" text-anchor="middle" font-size="17">System of record</text>
+  <text class="body"  x="430" y="498" text-anchor="middle">orders, customers,</text>
+  <text class="body"  x="430" y="520" text-anchor="middle">CI runs, services, tickets</text>
+
+  <rect class="store" x="550" y="430" width="160" height="120" rx="6"/>
+  <text class="title" x="630" y="470" text-anchor="middle" font-size="17">Refund ledger</text>
+  <text class="body"  x="630" y="498" text-anchor="middle">refunds already</text>
+  <text class="body"  x="630" y="520" text-anchor="middle">approved</text>
+
+  <path class="line" d="M430 430 V 312" marker-end="url(#arrow)"/>
+  <path class="line" d="M630 430 V 312" marker-end="url(#arrow)"/>
+  <text class="label" x="440" y="385">facts</text>
+  <text class="label" x="640" y="385">history</text>
+
+  <!-- 3. Policy engine -->
+  <rect class="box" x="760" y="170" width="270" height="140" rx="6"/>
+  <text class="title" x="895" y="215" text-anchor="middle">Policy engine</text>
+  <text class="body"  x="895" y="245" text-anchor="middle">6 ordered rules.</text>
+  <text class="body"  x="895" y="270" text-anchor="middle">The first that applies decides;</text>
+  <text class="body"  x="895" y="292" text-anchor="middle">all are traced.</text>
+
+  <!-- Ruling -->
+  <rect class="box" x="1100" y="140" width="230" height="200" rx="6"/>
+  <text class="title" x="1215" y="182" text-anchor="middle">Ruling</text>
+  <text x="1215" y="216" text-anchor="middle" font-size="15" font-weight="700" fill="#17784c" letter-spacing="1.5">EXECUTE</text>
+  <text x="1215" y="242" text-anchor="middle" font-size="15" font-weight="700" fill="#2a4bd7" letter-spacing="1.5">ASK</text>
+  <text x="1215" y="268" text-anchor="middle" font-size="15" font-weight="700" fill="#a05800" letter-spacing="1.5">DEFER</text>
+  <text x="1215" y="294" text-anchor="middle" font-size="15" font-weight="700" fill="#6b3db3" letter-spacing="1.5">ESCALATE</text>
+  <text x="1215" y="320" text-anchor="middle" font-size="15" font-weight="700" fill="#c2271e" letter-spacing="1.5">REFUSE</text>
+
+  <!-- 4. Audit log -->
+  <rect class="store" x="1400" y="160" width="280" height="160" rx="6"/>
+  <text class="title" x="1540" y="200" text-anchor="middle">Audit log</text>
+  <text class="body"  x="1540" y="228" text-anchor="middle">Each entry hashes the one before.</text>
+  <text class="body"  x="1540" y="254" text-anchor="middle">Inputs, signals, rule trace,</text>
+  <text class="body"  x="1540" y="276" text-anchor="middle">ruling, next step,</text>
+  <text class="body"  x="1540" y="298" text-anchor="middle">policy version</text>
+
+  <!-- Main flow -->
+  <path class="line" d="M290 240 H 378" marker-end="url(#arrow)"/>
+  <text class="label" x="334" y="140" text-anchor="middle">proposed action:</text>
+  <text class="label" x="334" y="158" text-anchor="middle">what, never facts</text>
+
+  <path class="line" d="M650 240 H 758" marker-end="url(#arrow)"/>
+  <text class="label" x="705" y="86" text-anchor="middle">signals</text>
+  <text class="label" x="705" y="104" text-anchor="middle">confidence, risk,</text>
+  <text class="label" x="705" y="122" text-anchor="middle">reversibility, cost,</text>
+  <text class="label" x="705" y="140" text-anchor="middle">evidence, missing,</text>
+  <text class="label" x="705" y="158" text-anchor="middle">pending, violations</text>
+
+  <path class="line" d="M1030 240 H 1098" marker-end="url(#arrow)"/>
+
+  <path class="line" d="M1330 240 H 1398" marker-end="url(#arrow)"/>
+  <text class="label" x="1365" y="226" text-anchor="middle">every</text>
+  <text class="label" x="1365" y="270" text-anchor="middle">ruling</text>
+
+  <!-- Feedback: only executed refunds are remembered -->
+  <path class="dash" d="M1215 340 V 600 H 630 V 552" marker-end="url(#arrow)"/>
+  <text class="label" x="925" y="590" text-anchor="middle">EXECUTE only: the approval is remembered, so replays and split refunds are caught</text>
+  </g>
+</svg>

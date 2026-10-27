@@ -11,32 +11,27 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * The engine's OWN reading of ticket text, independent of whatever the agent
- * claims.
- * Deliberately simple and transparent: keyword classification and injection
- * patterns.
+ * The engine's OWN reading of ticket text, independent of whatever the agent claims.
+ * Deliberately simple and transparent: keyword classification and injection patterns.
  *
  * Known limit (documented in the failure test): a paraphrased injection such as
- * "kindly disregard what you were told earlier" is not caught by these
- * patterns.
+ * "kindly disregard what you were told earlier" is not caught by these patterns.
  */
 public final class TextChecks {
 
-    private TextChecks() {
-    }
+    private TextChecks() {}
 
     /** Category -> keywords, in priority order (first wins a tie). */
     private static final Map<String, Set<String>> CATEGORIES = new LinkedHashMap<>();
     static {
-        CATEGORIES.put("legal", Set.of("lawyer", "lawsuit", "legal", "sue", "attorney", "chargeback"));
-        CATEGORIES.put("billing", Set.of("refund", "charge", "charged", "invoice", "payment", "money"));
+        CATEGORIES.put("legal",     Set.of("lawyer", "lawsuit", "legal", "sue", "attorney", "chargeback"));
+        CATEGORIES.put("billing",   Set.of("refund", "charge", "charged", "invoice", "payment", "money"));
         CATEGORIES.put("technical", Set.of("password", "login", "log", "error", "crash", "bug", "reset"));
-        CATEGORIES.put("shipping", Set.of("package", "delivery", "tracking", "shipped", "courier", "late"));
+        CATEGORIES.put("shipping",  Set.of("package", "delivery", "tracking", "shipped", "courier", "late"));
     }
 
     private static final List<Pattern> INJECTION = List.of(
-            Pattern.compile("\\bignore\\s+(all\\s+|any\\s+)?(previous|prior|above)\\s+instructions?\\b",
-                    Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bignore\\s+(all\\s+|any\\s+)?(previous|prior|above)\\s+instructions?\\b", Pattern.CASE_INSENSITIVE),
             Pattern.compile("\\bdisregard\\s+(all\\s+|any\\s+)?(previous|prior|above)\\b", Pattern.CASE_INSENSITIVE),
             Pattern.compile("\\bsystem\\s*:", Pattern.CASE_INSENSITIVE),
             Pattern.compile("\\byou\\s+are\\s+now\\b", Pattern.CASE_INSENSITIVE),
@@ -44,8 +39,7 @@ public final class TextChecks {
 
     /** Whole-word tokens, so "illegal" does not match "legal". */
     static Set<String> words(String text) {
-        if (text == null)
-            return Set.of();
+        if (text == null) return Set.of();
         return Arrays.stream(text.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
                 .filter(w -> !w.isBlank())
                 .collect(Collectors.toSet());

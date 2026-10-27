@@ -38,35 +38,23 @@ const state = {
 
 onConnection((type, error) => {
   if (type === "waking") {
-    showBanner(
-      "DEFER",
-      "The server is waking up. Free hosting pauses after 15 idle minutes, so the first request can take up to a minute.",
-    );
+    showBanner("DEFER", "The server is waking up. Free hosting pauses after 15 idle minutes, so the first request can take up to a minute.");
   } else if (type === "error") {
-    showBanner(
-      "REFUSE",
-      `Can't reach the engine: ${error?.message ?? "unknown error"}. Check your connection, then reload the page.`,
-    );
+    showBanner("REFUSE", `Can't reach the engine: ${error?.message ?? "unknown error"}. Check your connection, then reload the page.`);
   } else {
     el.banner.hidden = true;
   }
 });
 
 function showBanner(verdict, message) {
-  mount(
-    el.banner,
-    html`<div class="banner__inner v-${verdict}">${message}</div>`,
-  );
+  mount(el.banner, html`<div class="banner__inner v-${verdict}">${message}</div>`);
   el.banner.hidden = false;
 }
 
 /* ---------- Record and status ---------- */
 
 async function refreshRecord() {
-  const [entries, verification] = await Promise.all([
-    api.record(RECORD_LIMIT),
-    api.verify(),
-  ]);
+  const [entries, verification] = await Promise.all([api.record(RECORD_LIMIT), api.verify()]);
   state.record = entries;
   state.verification = verification;
   drawRecord();
@@ -74,19 +62,13 @@ async function refreshRecord() {
 }
 
 function drawRecord() {
-  renderRecord(el.record, {
-    entries: state.record,
-    selectedId: state.selectedEntry,
-    verification: state.verification,
-  });
+  renderRecord(el.record, { entries: state.record, selectedId: state.selectedEntry, verification: state.verification });
 }
 
 function drawChainStatus() {
   const v = state.verification;
   if (!v) return;
-  el.chain.textContent = v.valid
-    ? `sealed, ${v.entriesChecked} entries`
-    : "seal broken";
+  el.chain.textContent = v.valid ? `sealed, ${v.entriesChecked} entries` : "seal broken";
   el.chain.className = v.valid ? "is-ok" : "is-bad";
 }
 
@@ -118,45 +100,22 @@ async function run(task, working) {
     await task();
     await refreshRecord();
   } catch (error) {
-    renderPlaceholder(el.case, {
-      title: "That case could not be filed",
-      body: error.message,
-    });
+    renderPlaceholder(el.case, { title: "That case could not be filed", body: error.message });
   } finally {
     state.busy = false;
   }
 }
 
 const openers = {
-  ticket: (id) =>
-    run(
-      async () => {
-        const entry = await api.runAgent(id);
-        showEntry(entry, {
-          origin: "ticket",
-          ticket: state.tickets.find((t) => t.id === id),
-        });
-      },
-      {
-        title: `The agent is reading ${id}`,
-        body: "Then the engine checks its proposal against the record.",
-      },
-    ),
+  ticket: (id) => run(async () => {
+    const entry = await api.runAgent(id);
+    showEntry(entry, { origin: "ticket", ticket: state.tickets.find((t) => t.id === id) });
+  }, { title: `The agent is reading ${id}`, body: "Then the engine checks its proposal against the record." }),
 
-  scenario: (id) =>
-    run(
-      async () => {
-        const entry = await api.runScenario(id);
-        showEntry(entry, {
-          origin: "scenario",
-          scenario: state.scenarios.find((s) => s.id === id),
-        });
-      },
-      {
-        title: "Filing the scenario",
-        body: "The engine is gathering facts and checking its rules.",
-      },
-    ),
+  scenario: (id) => run(async () => {
+    const entry = await api.runScenario(id);
+    showEntry(entry, { origin: "scenario", scenario: state.scenarios.find((s) => s.id === id) });
+  }, { title: "Filing the scenario", body: "The engine is gathering facts and checking its rules." }),
 
   draft: () => {
     renderComposer(el.case, state.composer);
@@ -172,9 +131,7 @@ function openCase(kind, id) {
 function openEntry(entryId) {
   const entry = state.record.find((e) => e.id === entryId);
   if (!entry) return;
-  const ticket = entry.proposal
-    ? state.tickets.find((t) => t.id === entry.proposal.sourceTicketId)
-    : null;
+  const ticket = entry.proposal ? state.tickets.find((t) => t.id === entry.proposal.sourceTicketId) : null;
   showEntry(entry, { origin: "record", ticket });
   drawRecord();
 }
@@ -184,11 +141,7 @@ function openEntry(entryId) {
 el.case.addEventListener("click", (event) => {
   const template = event.target.closest("[data-template]");
   if (template) {
-    state.composer = {
-      template: template.dataset.template,
-      text: null,
-      error: null,
-    };
+    state.composer = { template: template.dataset.template, text: null, error: null };
     renderComposer(el.case, state.composer);
     return;
   }
@@ -200,25 +153,15 @@ el.case.addEventListener("submit", (event) => {
   if (!form) return;
   event.preventDefault();
   const result = readComposer(form);
-  state.composer = {
-    ...state.composer,
-    text: result.text,
-    error: result.error ?? null,
-  };
+  state.composer = { ...state.composer, text: result.text, error: result.error ?? null };
   if (result.error) {
     renderComposer(el.case, state.composer);
     return;
   }
-  run(
-    async () => {
-      const entry = await api.decide(result.action);
-      showEntry(entry, { origin: "draft" });
-    },
-    {
-      title: "Filing your action",
-      body: "The engine is gathering facts and checking its rules.",
-    },
-  );
+  run(async () => {
+    const entry = await api.decide(result.action);
+    showEntry(entry, { origin: "draft" });
+  }, { title: "Filing your action", body: "The engine is gathering facts and checking its rules." });
 });
 
 /* ---------- Boot ---------- */
@@ -236,11 +179,7 @@ bindRecord(el.record, {
 (async function init() {
   renderPlaceholder(el.case, { title: "Opening the docket", working: true });
   try {
-    const [policy, tickets, scenarios] = await Promise.all([
-      api.policy(),
-      api.tickets(),
-      api.scenarios(),
-    ]);
+    const [policy, tickets, scenarios] = await Promise.all([api.policy(), api.tickets(), api.scenarios()]);
     state.tickets = tickets;
     state.scenarios = scenarios;
     el.policy.textContent = policy.version;
@@ -251,15 +190,11 @@ bindRecord(el.record, {
     await refreshRecord();
 
     // Open the featured case from the existing record, so loading the page files nothing new.
-    const featured = state.record.find(
-      (e) => e.proposal?.sourceTicketId === FEATURED_TICKET,
-    );
+    const featured = state.record.find((e) => e.proposal?.sourceTicketId === FEATURED_TICKET);
     if (featured) {
       state.selectedEntry = featured.id;
       renderCase(el.case, {
-        entry: featured,
-        origin: "ticket",
-        animate: true,
+        entry: featured, origin: "ticket", animate: true,
         ticket: tickets.find((t) => t.id === FEATURED_TICKET),
       });
       drawRecord();

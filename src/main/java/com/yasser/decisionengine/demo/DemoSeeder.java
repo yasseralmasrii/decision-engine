@@ -2,7 +2,6 @@ package com.yasser.decisionengine.demo;
 
 import com.yasser.decisionengine.agent.TicketAgent;
 import com.yasser.decisionengine.audit.AuditLog;
-import com.yasser.decisionengine.data.SystemOfRecord;
 import com.yasser.decisionengine.engine.DecisionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,20 +18,19 @@ import org.springframework.stereotype.Component;
 public class DemoSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoSeeder.class);
+    static final String FEATURED_TICKET = "T-102";
 
     private final boolean enabled;
     private final DecisionService decisions;
     private final AuditLog audit;
     private final TicketAgent agent;
-    private final SystemOfRecord records;
 
     public DemoSeeder(@Value("${demo.seed:true}") boolean enabled, DecisionService decisions,
-            AuditLog audit, TicketAgent agent, SystemOfRecord records) {
+            AuditLog audit, TicketAgent agent) {
         this.enabled = enabled;
         this.decisions = decisions;
         this.audit = audit;
         this.agent = agent;
-        this.records = records;
     }
 
     @Override
@@ -40,13 +38,12 @@ public class DemoSeeder implements ApplicationRunner {
         if (!enabled)
             return;
         for (var scenario : Scenarios.ALL) {
-            audit.record(scenario.action(), decisions.decide(scenario.action()));
+            audit.record(scenario.action(), decisions.preview(scenario.action()));
         }
-        // Agent runs use the rule-based agent at startup only if no LLM key is set,
-        // so seeding never spends LLM quota.
-        if (agent.proposerName().startsWith("rule-based")) {
-            records.tickets().forEach(t -> agent.handle(t.id()));
-        }
+        // One real agent run on the featured ticket, so the page opens on a full case.
+        // Only this ticket, so seeding spends at most one LLM call and approves
+        // nothing.
+        agent.handle(FEATURED_TICKET);
         log.info("Demo seed complete: {} audit entries", audit.recent(Integer.MAX_VALUE).size());
     }
 }

@@ -2,6 +2,7 @@ package com.yasser.decisionengine.engine;
 
 import com.yasser.decisionengine.model.Signals;
 import com.yasser.decisionengine.model.Verdict;
+
 import java.util.function.Function;
 import java.util.function.Predicate;
 

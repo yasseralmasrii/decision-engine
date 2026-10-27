@@ -6,6 +6,7 @@ import com.yasser.decisionengine.data.SystemOfRecord;
 import com.yasser.decisionengine.model.ProposedAction;
 import com.yasser.decisionengine.model.Signals;
 import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,9 +27,7 @@ public class TicketSignals implements SignalProvider {
     }
 
     @Override
-    public String domain() {
-        return "ticket";
-    }
+    public String domain() { return "ticket"; }
 
     @Override
     public Signals compute(ProposedAction action) {
@@ -40,8 +39,7 @@ public class TicketSignals implements SignalProvider {
             return s.violation("Unsupported ticket action '" + type + "' (allowed: " + TYPES + ")").build();
         }
         String ticketId = Params.str(p, "ticketId");
-        if (ticketId == null)
-            return s.missing("ticketId").build();
+        if (ticketId == null) return s.missing("ticketId").build();
 
         Optional<Ticket> found = records.ticket(ticketId);
         if (found.isEmpty()) {
@@ -52,10 +50,8 @@ public class TicketSignals implements SignalProvider {
         boolean vip = customer != null && "vip".equals(customer.tier());
 
         String queue = Params.str(p, "queue");
-        if ("route".equals(type) && queue == null)
-            s.missing("target queue");
-        if ("send_reply".equals(type) && Params.str(p, "reply") == null)
-            s.missing("reply text");
+        if ("route".equals(type) && queue == null) s.missing("target queue");
+        if ("send_reply".equals(type) && Params.str(p, "reply") == null) s.missing("reply text");
 
         // --- Independent check: does the engine's own classifier agree? ---
         Optional<String> engineCategory = TextChecks.classify(ticket.text());
@@ -70,28 +66,27 @@ public class TicketSignals implements SignalProvider {
             }
         } else {
             s.confidence(engineCategory.isPresent() ? 0.85 : 0.6)
-                    .evidence("Engine classification: " + engineCategory.orElse("unclear"));
+             .evidence("Engine classification: " + engineCategory.orElse("unclear"));
         }
 
         // --- Risk ---
         s.risk(vip ? 0.4 : 0.1);
-        if (vip)
-            s.evidence("VIP customer");
+        if (vip) s.evidence("VIP customer");
         if (TextChecks.hasLegalLanguage(ticket.text())) {
             s.raiseRiskTo(0.7).approver("legal-team").evidence("Legal or chargeback language detected");
         }
         if (TextChecks.looksLikeInjection(ticket.text())) {
             s.raiseRiskTo(0.95).approver("security-team")
-                    .evidence("Ticket text contains instructions aimed at the AI (possible prompt injection)");
+             .evidence("Ticket text contains instructions aimed at the AI (possible prompt injection)");
             if (!"route".equals(type)) {
                 s.violation("No automated replies or closures on tickets containing AI-directed instructions");
             }
         }
 
-        boolean reversible = !"send_reply".equals(type); // a sent email can't be unsent
+        boolean reversible = !"send_reply".equals(type);   // a sent email can't be unsent
         s.reversible(reversible)
-                .evidence(reversible ? "Action can be undone" : "A sent reply cannot be unsent")
-                .costOfErrorUsd(vip ? 200 : 20);
+         .evidence(reversible ? "Action can be undone" : "A sent reply cannot be unsent")
+         .costOfErrorUsd(vip ? 200 : 20);
 
         return s.build();
     }

@@ -7,12 +7,9 @@ import { money, titleCase } from "./format.js";
 export const VERDICT_MEANING = {
   EXECUTE: "The action goes ahead without a person in the loop.",
   ASK: "The requester is asked for what is missing, then the case is re-filed.",
-  DEFER:
-    "Nothing happens yet. The case is re-checked once the evidence arrives.",
-  ESCALATE:
-    "A person with authority makes the call. The engine never acts alone here.",
-  REFUSE:
-    "The action is blocked. No level of confidence overrides a hard policy.",
+  DEFER: "Nothing happens yet. The case is re-checked once the evidence arrives.",
+  ESCALATE: "A person with authority makes the call. The engine never acts alone here.",
+  REFUSE: "The action is blocked. No level of confidence overrides a hard policy.",
 };
 
 /** Each rule, phrased as the question the engine asks. */
@@ -25,11 +22,7 @@ export const GATE_QUESTION = {
   "safe-to-act": "Otherwise, act.",
 };
 
-export const DOMAIN_NAME = {
-  refund: "Refunds",
-  deploy: "Deploys",
-  ticket: "Support tickets",
-};
+export const DOMAIN_NAME = { refund: "Refunds", deploy: "Deploys", ticket: "Support tickets" };
 
 /** One sentence describing what the agent wants to do. */
 export function describeAction(action) {
@@ -39,9 +32,7 @@ export function describeAction(action) {
     case "refund.issue_refund": {
       const amount = p.amount != null ? money(p.amount) : "an unstated amount";
       const order = p.orderId ? `order ${p.orderId}` : "an unstated order";
-      const method = p.method
-        ? ` as ${String(p.method).replace("_", " ")}`
-        : "";
+      const method = p.method ? ` as ${String(p.method).replace("_", " ")}` : "";
       return `Refund ${amount} on ${order}${method}`;
     }
     case "deploy.deploy":

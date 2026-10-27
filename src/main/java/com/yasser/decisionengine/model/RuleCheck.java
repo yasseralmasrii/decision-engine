@@ -9,5 +9,4 @@ package com.yasser.decisionengine.model;
  * @param decided whether this was the first match, i.e. the rule that decided
  * @param detail  the numbers behind the result, in plain words
  */
-public record RuleCheck(String rule, Verdict verdict, boolean matched, boolean decided, String detail) {
-}
+public record RuleCheck(String rule, Verdict verdict, boolean matched, boolean decided, String detail) {}
