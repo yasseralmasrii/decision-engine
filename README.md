@@ -6,7 +6,7 @@ A decision layer that sits between AI agents and the systems they act on. For ev
 
 The language model never decides. It only proposes; deterministic rules, checked against facts the engine looks up itself, make the call.
 
-- **Live demo:** `https://YOUR-APP.onrender.com` (free hosting: the first load after idle can take about a minute)
+- **Live demo:** `https://decision-engine-voev.onrender.com/` (free hosting: the first load after idle can take about a minute)
 - **Walkthrough video:** `https://loom.com/share/...`
 - Built for the DOO Builders League, *The Decision Engine* challenge.
 
@@ -17,7 +17,7 @@ The language model never decides. It only proposes; deterministic rules, checked
 Requirements: **Java 17 or newer**. Nothing else; Maven comes with the project.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/decision-engine.git
+git clone https://github.com/yasseralmasrii/decision-engine.git
 cd decision-engine
 ./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
 ```
