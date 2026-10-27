@@ -1,0 +1,73 @@
+:root {
+  --paper: #e9ecf0;
+  --sheet: #ffffff;
+  --wash: #f3f5f8;
+  --ink: #1a1f2b;
+  --ink-2: #48505f;
+  --ink-3: #78808f;
+  --rule: #d6dbe2;
+  --rule-strong: #b4bcc8;
+  --focus: #2a4bd7;
+
+  --execute: #17784c;  --execute-wash: #e6f3ec;
+  --ask: #2a4bd7;      --ask-wash: #e8edfc;
+  --defer: #a05800;    --defer-wash: #fbf0e0;
+  --escalate: #6b3db3; --escalate-wash: #f0eafa;
+  --refuse: #c2271e;   --refuse-wash: #fbe8e6;
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --t-xs: 0.8125rem;   
+  --t-sm: 0.875rem;    
+  --t-base: 0.9375rem; 
+  --t-md: 1.125rem;    
+  --t-lg: 1.375rem;    
+  --t-xl: 1.75rem;     
+  --t-2xl: 3rem;       
+
+  --gutter: 40px;
+  --max: none;
+  --r-control: 6px;
+  --r-sheet: 4px;
+  --shadow-sheet: 0 1px 0 rgba(26, 31, 43, 0.05), 0 18px 40px -20px rgba(26, 31, 43, 0.28);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #12151c;
+    --sheet: #1b1f28;
+    --wash: #232835;
+    --ink: #e8ebf1;
+    --ink-2: #b2b9c6;
+    --ink-3: #848c9b;
+    --rule: #2c323e;
+    --rule-strong: #3d4553;
+    --focus: #8aa2ff;
+
+    --execute: #5fd19b;  --execute-wash: #16302a;
+    --ask: #8aa2ff;      --ask-wash: #1c2645;
+    --defer: #f0b55a;    --defer-wash: #352812;
+    --escalate: #c3a1f5; --escalate-wash: #2a2142;
+    --refuse: #ff8b80;   --refuse-wash: #3b1c1b;
+
+    --shadow-sheet: 0 1px 0 rgba(0, 0, 0, 0.4), 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  }
+}
+
+@media (max-width: 1280px) {
+  :root { --gutter: 28px; }
+}
+
+@media (max-width: 860px) {
+  :root { --gutter: 16px; --t-2xl: 2.25rem; }
+}
+
+.v-EXECUTE  { --v: var(--execute);  --v-wash: var(--execute-wash); }
+.v-ASK      { --v: var(--ask);      --v-wash: var(--ask-wash); }
+.v-DEFER    { --v: var(--defer);    --v-wash: var(--defer-wash); }
+.v-ESCALATE { --v: var(--escalate); --v-wash: var(--escalate-wash); }
+.v-REFUSE   { --v: var(--refuse);   --v-wash: var(--refuse-wash); }
