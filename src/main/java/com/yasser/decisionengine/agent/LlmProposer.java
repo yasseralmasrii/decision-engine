@@ -6,6 +6,7 @@ import com.yasser.decisionengine.model.ProposedAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.json.JsonMapper;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -43,7 +44,7 @@ public class LlmProposer implements ActionProposer {
     private final ActionProposer fallback;
 
     public LlmProposer(HttpClient http, JsonMapper json, String baseUrl, String apiKey,
-            String model, ActionProposer fallback) {
+                       String model, ActionProposer fallback) {
         this.http = http;
         this.json = json;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
@@ -75,7 +76,6 @@ public class LlmProposer implements ActionProposer {
         Map<String, Object> body = Map.of(
                 "model", model,
                 "temperature", 0,
-                "response_format", Map.of("type", "json_object"),
                 "messages", List.of(
                         Map.of("role", "system", "content", SYSTEM_PROMPT),
                         Map.of("role", "user", "content",
@@ -103,10 +103,14 @@ public class LlmProposer implements ActionProposer {
      */
     @SuppressWarnings("unchecked")
     Proposal parse(String content, Ticket ticket) throws Exception {
-        String cleaned = content.strip();
-        if (cleaned.startsWith("```")) { // tolerate ```json fences
-            cleaned = cleaned.replaceAll("^```[a-zA-Z]*\\s*", "").replaceAll("\\s*```$", "");
+        // Models sometimes wrap JSON in ```fences``` or add a sentence around it:
+        // keep only the outermost {...} object.
+        int start = content.indexOf('{');
+        int end = content.lastIndexOf('}');
+        if (start < 0 || end <= start) {
+            throw new IllegalArgumentException("LLM response contains no JSON object");
         }
+        String cleaned = content.substring(start, end + 1);
         Map<String, Object> root = json.readValue(cleaned, Map.class);
         Object rawAction = root.get("action");
         if (!(rawAction instanceof Map<?, ?> a)) {

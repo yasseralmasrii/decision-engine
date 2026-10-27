@@ -12,6 +12,7 @@ import com.yasser.decisionengine.signals.RefundSignals;
 import com.yasser.decisionengine.signals.TicketSignals;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
+
 import java.net.http.HttpClient;
 import java.time.Clock;
 import java.util.List;
@@ -76,6 +77,16 @@ class AgentFlowTest {
         assertEquals("A-1001", p.action().params().get("orderId"));
         assertEquals(0.97, p.meta().selfReportedConfidence(), 0.001);
         assertEquals("llm:test-model", p.meta().proposer());
+    }
+
+    @Test
+    void llmParsesJsonWrappedInProse() throws Exception {
+        LlmProposer llm = new LlmProposer(HttpClient.newHttpClient(), JsonMapper.builder().build(),
+                "http://127.0.0.1:9", "key", "test-model", new RuleBasedProposer());
+        var p = llm.parse("Sure! Here is the action: {\"action\":{\"domain\":\"ticket\",\"type\":\"route\","
+                + "\"params\":{\"ticketId\":\"T-104\",\"queue\":\"technical\"}},\"confidence\":0.8} Hope that helps.",
+                RECORDS.ticket("T-104").orElseThrow());
+        assertEquals("route", p.action().type());
     }
 
     @Test
